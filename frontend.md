@@ -34,6 +34,8 @@ This frontend engineer challenge evaluates candidates’ knowledge of the basic 
 
 You are obliged to use figma for refernce, we expect that you can translate the design to a working website.
 
+Please check the 'Exam' page https://www.figma.com/file/RRDbb8warakR9Mu1KDlC7h/Untitled?node-id=0%3A1
+
 ## Dyamic Data
 
 - Search ![image](https://user-images.githubusercontent.com/20724804/138819552-528011d2-681a-45b7-8371-6c103eaafc64.png)
