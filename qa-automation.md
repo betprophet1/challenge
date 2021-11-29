@@ -65,6 +65,7 @@
 
 ## Notes
 
+* The repository must avoid containing the words prophet, betprophet and challenge.!!!
 * When your project is done, please share with us as a public GitHub / Bitbucket.
 * README.md should contain all the information that the reviewers need to run and use the app.
 * Breakdown the requirement as test suites or test cases to explain what you do.
