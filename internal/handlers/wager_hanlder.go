@@ -4,6 +4,7 @@ import (
 	"betprophet1.com/wagers/internal/services"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type WagerHandler interface {
@@ -33,8 +34,8 @@ func (w *WagerHandlerImpl) ListWager(res http.ResponseWriter, req *http.Request)
 	//page  := vars["page"]
 	//limit := vars["limit"]
 	query := req.URL.Query()
-	page := query.Get("page")
-	limit := query.Get("limit")
+	page, _ := strconv.Atoi(query.Get("page"))
+	limit, _ := strconv.Atoi(query.Get("limit"))
 
 	fmt.Fprintf(res, "You've requested the book: %s on page %s\n", page, limit)
 }
