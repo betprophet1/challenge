@@ -2,6 +2,9 @@ package main
 
 import (
 	"betprophet1.com/wagers/internal/domains"
+	"betprophet1.com/wagers/internal/handlers"
+	"betprophet1.com/wagers/internal/repositories"
+	"betprophet1.com/wagers/internal/services"
 	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/mysql"
@@ -21,7 +24,14 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+
+	wagerRepository := repositories.NewWagerRepositoryImpl(*db)
+	wagerService    := services.NewWagerServiceImpl(wagerRepository)
+	wagerHandler    := handlers.NewWagerHandlerImpl(wagerService)
 	r := mux.NewRouter()
+	r.HandleFunc("/wagers", wagerHandler.PlaceWager).Methods(http.MethodPost)
+	r.HandleFunc("/buy", wagerHandler.BuyWager).Methods(http.MethodPost)
+	r.HandleFunc("/wagers", wagerHandler.ListWager).Methods(http.MethodGet)
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",
 		Handler:           r,
