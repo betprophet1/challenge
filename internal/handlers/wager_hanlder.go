@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"betprophet1.com/wagers/internal/dtos"
 	"betprophet1.com/wagers/internal/services"
-	"fmt"
+	"encoding/json"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
@@ -22,7 +24,47 @@ func NewWagerHandlerImpl(wagerService services.WagerService) *WagerHandlerImpl {
 }
 
 func (w *WagerHandlerImpl) PlaceWager(res http.ResponseWriter, req *http.Request) {
+	wager := &dtos.WagerRequestDto{}
+	if err := json.NewDecoder(req.Body).Decode(wager); err != nil {
+		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
+		res.Header().Add("Content-Type", "application/json")
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write(e)
+		return
+	}
 
+	placeWager, err := w.wagerService.PlaceWager(wager)
+	if err != nil {
+		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
+		res.Header().Add("Content-Type", "application/json")
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write(e)
+		return
+	}
+
+	converter := &dtos.WagerResponseDto{
+		Id:                  placeWager.BaseModel.ID,
+		TotalWagerValue:     placeWager.TotalWagerValue,
+		Odds:                float32(placeWager.Odds),
+		SellingPercentage:   placeWager.SellingPercentage,
+		SellingPrice:        placeWager.SellingPrice,
+		CurrentSellingPrice: placeWager.CurrentSellingPrice,
+		PercentageSold:      placeWager.PercentageSold,
+		AmountSold:          placeWager.AmountSold,
+		PlacedAt:            placeWager.BaseModel.PlacedAt,
+	}
+	response, err := json.Marshal(converter)
+	if err != nil {
+		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
+		res.Header().Add("Content-Type", "application/json")
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write(e)
+		return
+	}
+
+	res.Header().Add("Content-Type", "application/json")
+	res.WriteHeader(http.StatusCreated)
+	res.Write(response)
 }
 
 func (w *WagerHandlerImpl) BuyWager(res http.ResponseWriter, req *http.Request) {
@@ -30,12 +72,21 @@ func (w *WagerHandlerImpl) BuyWager(res http.ResponseWriter, req *http.Request) 
 }
 
 func (w *WagerHandlerImpl) ListWager(res http.ResponseWriter, req *http.Request) {
-	//vars := mux.Vars(req)
-	//page  := vars["page"]
-	//limit := vars["limit"]
-	query := req.URL.Query()
-	page, _ := strconv.Atoi(query.Get("page"))
-	limit, _ := strconv.Atoi(query.Get("limit"))
+	vars := mux.Vars(req)
+	page, _  := strconv.Atoi(vars["page"])
+	limit, _ := strconv.Atoi(vars["limit"])
 
-	fmt.Fprintf(res, "You've requested the book: %s on page %s\n", page, limit)
+	wagers, err := w.wagerService.GetWagers(page, limit)
+	if err != nil {
+		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
+		res.Header().Add("Content-Type", "application/json")
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write(e)
+		return
+	}
+
+	response, _ := json.Marshal(wagers)
+	res.Header().Add("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+	res.Write(response)
 }

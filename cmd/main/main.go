@@ -32,7 +32,7 @@ func main() {
 	r.HandleFunc("/wagers", wagerHandler.PlaceWager).Methods(http.MethodPost)
 	r.HandleFunc("/buy/{wager_id}", wagerHandler.BuyWager).Methods(http.MethodPost)
 	r.HandleFunc("/wagers", wagerHandler.ListWager).
-		//Queries("page", "{page:[0-9,]+}", "limit", "{limit:[0-9,]+}").
+		Queries("page", "{page:[0-9,]+}", "limit", "{limit:[0-9,]+}").
 		Methods(http.MethodGet)
 	srv := &http.Server{
 		Addr:              "0.0.0.0:8080",
