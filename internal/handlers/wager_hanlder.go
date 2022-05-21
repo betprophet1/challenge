@@ -4,26 +4,30 @@ import (
 	"betprophet1.com/wagers/internal/dtos"
 	"betprophet1.com/wagers/internal/services"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
 
-type WagerHandler interface {
+type IWagerHandler interface {
 	PlaceWager(res http.ResponseWriter, req *http.Request)
 	BuyWager(res http.ResponseWriter, req *http.Request)
 	ListWager(res http.ResponseWriter, req *http.Request)
 }
 
-type WagerHandlerImpl struct {
-	wagerService services.WagerService
+type WagerHandler struct {
+	wagerService    services.IWagerService
+	purchaseService services.IPurchaseService
 }
 
-func NewWagerHandlerImpl(wagerService services.WagerService) *WagerHandlerImpl {
-	return &WagerHandlerImpl{wagerService: wagerService}
+func NewWagerHandler(wagerService services.IWagerService, purchaseService services.IPurchaseService) *WagerHandler {
+	return &WagerHandler{wagerService: wagerService, purchaseService: purchaseService}
 }
 
-func (w *WagerHandlerImpl) PlaceWager(res http.ResponseWriter, req *http.Request) {
+
+
+func (w *WagerHandler) PlaceWager(res http.ResponseWriter, req *http.Request) {
 	wager := &dtos.WagerRequestDto{}
 	if err := json.NewDecoder(req.Body).Decode(wager); err != nil {
 		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
@@ -42,18 +46,7 @@ func (w *WagerHandlerImpl) PlaceWager(res http.ResponseWriter, req *http.Request
 		return
 	}
 
-	converter := &dtos.WagerResponseDto{
-		Id:                  placeWager.BaseModel.ID,
-		TotalWagerValue:     placeWager.TotalWagerValue,
-		Odds:                float32(placeWager.Odds),
-		SellingPercentage:   placeWager.SellingPercentage,
-		SellingPrice:        placeWager.SellingPrice,
-		CurrentSellingPrice: placeWager.CurrentSellingPrice,
-		PercentageSold:      placeWager.PercentageSold,
-		AmountSold:          placeWager.AmountSold,
-		PlacedAt:            placeWager.BaseModel.PlacedAt,
-	}
-	response, err := json.Marshal(converter)
+	response, err := json.Marshal(placeWager.ConvertToDto())
 	if err != nil {
 		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
 		res.Header().Add("Content-Type", "application/json")
@@ -67,11 +60,30 @@ func (w *WagerHandlerImpl) PlaceWager(res http.ResponseWriter, req *http.Request
 	res.Write(response)
 }
 
-func (w *WagerHandlerImpl) BuyWager(res http.ResponseWriter, req *http.Request) {
+func (w *WagerHandler) BuyWager(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	wagerId, _ := strconv.Atoi(vars["wager_id"])
+	purchaseReq := &dtos.PurchaseRequestDto{
+		WagerId:     uint(wagerId),
+	}
 
+	if err := json.NewDecoder(req.Body).Decode(purchaseReq); err != nil {
+		fmt.Println(err)
+		return
+	}
+	purchase, err := w.purchaseService.Buy(purchaseReq)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	response, _ := json.Marshal(purchase)
+	res.Header().Add("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+	res.Write(response)
 }
 
-func (w *WagerHandlerImpl) ListWager(res http.ResponseWriter, req *http.Request) {
+func (w *WagerHandler) ListWager(res http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	page, _  := strconv.Atoi(vars["page"])
 	limit, _ := strconv.Atoi(vars["limit"])

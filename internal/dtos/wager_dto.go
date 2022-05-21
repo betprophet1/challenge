@@ -21,13 +21,6 @@ type WagerResponseDto struct {
 	PlacedAt            *time.Time `json:"placed_at"`
 }
 
-type BuyWagerResponseDto struct {
-	Id          uint       `json:"id"`
-	WagerId     uint       `json:"wager_id"`
-	BuyingPrice float32    `json:"buying_price"`
-	BoughtAt    *time.Time `json:"bought_at"`
-}
-
 type WagerErrorResponse struct {
 	Error string `json:"error"`
 }

@@ -7,17 +7,20 @@ import (
 	"betprophet1.com/wagers/pkg"
 )
 
-type WagerService interface {
+type IWagerService interface {
 	PlaceWager(wager *dtos.WagerRequestDto) (*domains.Wager, error)
-	BuyWager(wagerId uint) (*domains.Wager, error)
 	GetWagers(page int, limit int) (*pkg.Pagination, error)
 }
 
-type WagerServiceImpl struct {
-	wagerRepository repositories.WagerRepository
+type WagerService struct {
+	wagerRepository repositories.IWagerRepository
 }
 
-func (w *WagerServiceImpl) PlaceWager(wager *dtos.WagerRequestDto) (*domains.Wager, error) {
+func NewWagerService(wagerRepository repositories.IWagerRepository) *WagerService {
+	return &WagerService{wagerRepository: wagerRepository}
+}
+
+func (w *WagerService) PlaceWager(wager *dtos.WagerRequestDto) (*domains.Wager, error) {
 	wagerDomain := &domains.Wager{
 		TotalWagerValue:   wager.TotalWagerValue,
 		Odds:              wager.Odds,
@@ -27,11 +30,7 @@ func (w *WagerServiceImpl) PlaceWager(wager *dtos.WagerRequestDto) (*domains.Wag
 	return w.wagerRepository.Create(wagerDomain)
 }
 
-func (w *WagerServiceImpl) BuyWager(wagerId uint) (*domains.Wager, error)  {
-	return nil, nil
-}
-
-func (w *WagerServiceImpl) GetWagers(page int, limit int) (*pkg.Pagination, error) {
+func (w *WagerService) GetWagers(page int, limit int) (*pkg.Pagination, error) {
 	pagination := &pkg.Pagination{
 		Limit:      limit,
 		Page:       page,
@@ -47,8 +46,4 @@ func (w *WagerServiceImpl) GetWagers(page int, limit int) (*pkg.Pagination, erro
 	}
 	wagers.Rows = wagerDtos
 	return wagers, nil
-}
-
-func NewWagerServiceImpl(wagerRepository repositories.WagerRepository) *WagerServiceImpl {
-	return &WagerServiceImpl{wagerRepository: wagerRepository}
 }

@@ -20,14 +20,19 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	err = db.AutoMigrate(&domains.Wager{})
+	err = db.AutoMigrate(&domains.Wager{}, &domains.Purchase{})
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	wagerRepository := repositories.NewWagerRepositoryImpl(*db)
-	wagerService    := services.NewWagerServiceImpl(wagerRepository)
-	wagerHandler    := handlers.NewWagerHandlerImpl(wagerService)
+	wagerRepository := repositories.NewWagerRepository(db)
+	purchaseRepository := repositories.NewPurchaseRepository(db)
+
+	wagerService    := services.NewWagerService(wagerRepository)
+	purchaseService := services.NewPurchaseService(purchaseRepository)
+
+	wagerHandler    := handlers.NewWagerHandler(wagerService, purchaseService)
+
 	r := mux.NewRouter()
 	r.HandleFunc("/wagers", wagerHandler.PlaceWager).Methods(http.MethodPost)
 	r.HandleFunc("/buy/{wager_id}", wagerHandler.BuyWager).Methods(http.MethodPost)
