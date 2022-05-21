@@ -10,6 +10,7 @@ type IWagerRepository interface {
 	Create(wager *domains.Wager) (*domains.Wager, error)
 	Update(wager *domains.Wager) (*domains.Wager, error)
 	GetAll(pagination *pkg.Pagination) (*pkg.Pagination, error)
+	GetById(id uint) (*domains.Wager, error)
 }
 
 type WagerRepository struct {
@@ -35,4 +36,10 @@ func (w *WagerRepository) GetAll(pagination *pkg.Pagination) (*pkg.Pagination, e
 	w.db.Scopes(pagination.Paginate(wagers, w.db)).Find(&wagers)
 	pagination.Rows = wagers
 	return pagination, nil
+}
+
+func (w *WagerRepository) GetById(id uint) (*domains.Wager, error) {
+	wager := &domains.Wager{}
+	err := w.db.Model(&domains.Wager{}).Where("id = ?", id).First(wager).Error
+	return wager, err
 }

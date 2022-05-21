@@ -29,7 +29,7 @@ func main() {
 	purchaseRepository := repositories.NewPurchaseRepository(db)
 
 	wagerService    := services.NewWagerService(wagerRepository)
-	purchaseService := services.NewPurchaseService(purchaseRepository)
+	purchaseService := services.NewPurchaseService(purchaseRepository, wagerRepository)
 
 	wagerHandler    := handlers.NewWagerHandler(wagerService, purchaseService)
 

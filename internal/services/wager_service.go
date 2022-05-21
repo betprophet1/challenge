@@ -5,6 +5,7 @@ import (
 	"betprophet1.com/wagers/internal/dtos"
 	"betprophet1.com/wagers/internal/repositories"
 	"betprophet1.com/wagers/pkg"
+	"errors"
 )
 
 type IWagerService interface {
@@ -21,11 +22,20 @@ func NewWagerService(wagerRepository repositories.IWagerRepository) *WagerServic
 }
 
 func (w *WagerService) PlaceWager(wager *dtos.WagerRequestDto) (*domains.Wager, error) {
+	if wager.IsEmpty() {
+		return nil, errors.New("Wager request must not be null or empty")
+	}
+
+	if wager.SellingPrice < (wager.TotalWagerValue * (wager.SellingPercentage / 100)) {
+		return nil, errors.New("Selling price mus be greated than total_wager_value * (selling_percentage / 100)")
+	}
+
 	wagerDomain := &domains.Wager{
-		TotalWagerValue:   wager.TotalWagerValue,
-		Odds:              wager.Odds,
-		SellingPercentage: wager.SellingPercentage,
-		SellingPrice:      wager.SellingPrice,
+		TotalWagerValue:     wager.TotalWagerValue,
+		Odds:                wager.Odds,
+		SellingPercentage:   wager.SellingPercentage,
+		SellingPrice:        wager.SellingPrice,
+		CurrentSellingPrice: wager.SellingPrice,
 	}
 	return w.wagerRepository.Create(wagerDomain)
 }

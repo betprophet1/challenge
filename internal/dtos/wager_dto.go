@@ -1,6 +1,9 @@
 package dtos
 
-import "time"
+import (
+	"reflect"
+	"time"
+)
 
 type WagerRequestDto struct {
 	TotalWagerValue   float32 `json:"total_wager_value"`
@@ -23,4 +26,8 @@ type WagerResponseDto struct {
 
 type WagerErrorResponse struct {
 	Error string `json:"error"`
+}
+
+func (w *WagerRequestDto) IsEmpty() bool {
+	return reflect.DeepEqual(w, &WagerRequestDto{})
 }

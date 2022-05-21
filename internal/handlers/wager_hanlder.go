@@ -4,7 +4,6 @@ import (
 	"betprophet1.com/wagers/internal/dtos"
 	"betprophet1.com/wagers/internal/services"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -68,12 +67,18 @@ func (w *WagerHandler) BuyWager(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if err := json.NewDecoder(req.Body).Decode(purchaseReq); err != nil {
-		fmt.Println(err)
+		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
+		res.Header().Add("Content-Type", "application/json")
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write(e)
 		return
 	}
 	purchase, err := w.purchaseService.Buy(purchaseReq)
 	if err != nil {
-		fmt.Println(err)
+		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
+		res.Header().Add("Content-Type", "application/json")
+		res.WriteHeader(http.StatusInternalServerError)
+		res.Write(e)
 		return
 	}
 

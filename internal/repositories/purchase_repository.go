@@ -7,6 +7,7 @@ import (
 
 type IPurchaseRepository interface {
 	Buy(purchase *domains.Purchase) (*domains.Purchase, error)
+	Count() (int64, error)
 }
 
 type PurchaseRepository struct {
@@ -20,4 +21,10 @@ func NewPurchaseRepository(db *gorm.DB) *PurchaseRepository {
 func (p *PurchaseRepository) Buy(purchase *domains.Purchase) (*domains.Purchase, error)  {
 	err := p.db.Model(&domains.Purchase{}).Create(purchase).Error
 	return purchase, err
+}
+
+func (p *PurchaseRepository) Count() (int64, error) {
+	var count int64
+	err := p.db.Model(&domains.Purchase{}).Count(&count).Error
+	return count, err
 }
