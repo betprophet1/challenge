@@ -1,22 +1,49 @@
 package pkg
 
 import (
-	"github.com/joho/godotenv"
+	"os"
+	"reflect"
+)
+
+const (
+	MYSQL_USER     = "MYSQL_USER"
+	MYSQL_PASSWORD = "MYSQL_PASSWORD"
+	MYSQL_DATABASE = "MYSQL_DATABASE"
+	MYSQL_HOST     = "MYSQL_HOST"
+	MYSQL_PORT     = "MYSQL_PORT"
 )
 type IEnv interface {
-	
+	Get() *Env
 }
+
 type Env struct {
-	MysqlUsername string `json:"mysql_username"`
-	MysqlPassword string `json:"mysql_password"`
-	MysqlHost     string `json:"mysql_host"`
-	MysqlDatabase string `json:"mysql_database"`
-
+	MysqlUser     string
+	MysqlPassword string
+	MysqlHost     string
+	MysqlDatabase string
+	MysqlPort     string
 }
 
-func (e *Env) Load()  {
-	err := godotenv.Load()
-	if err != nil {
-		return
+func Get() *Env {
+	return &Env{
+		MysqlUser:     os.Getenv(MYSQL_USER),
+		MysqlPassword: os.Getenv(MYSQL_PASSWORD),
+		MysqlHost:     os.Getenv(MYSQL_HOST),
+		MysqlDatabase: os.Getenv(MYSQL_DATABASE),
+		MysqlPort:     os.Getenv(MYSQL_PORT),
 	}
+}
+
+func Default() *Env {
+	return &Env{
+		MysqlUser:     "wager",
+		MysqlPassword: "123456",
+		MysqlHost:     "localhost",
+		MysqlDatabase: "wager",
+		MysqlPort:     "3306",
+	}
+}
+
+func (e *Env) IsEmpty() bool {
+	return reflect.DeepEqual(e, &Env{})
 }

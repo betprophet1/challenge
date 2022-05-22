@@ -5,6 +5,7 @@ import (
 	"betprophet1.com/wagers/internal/handlers"
 	"betprophet1.com/wagers/internal/repositories"
 	"betprophet1.com/wagers/internal/services"
+	"betprophet1.com/wagers/pkg"
 	"fmt"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/mysql"
@@ -26,7 +27,9 @@ func main() {
 			Colorful:                  false,
 		},
 	)
-	dsn := "wager:123456@tcp(127.0.0.1:3306)/wager?charset=utf8mb4&parseTime=True&loc=Local"
+	conf := pkg.Get()
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		conf.MysqlUser, conf.MysqlPassword, conf.MysqlHost, conf.MysqlDatabase)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger:                                   dbLogger,
 	})

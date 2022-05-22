@@ -6,3 +6,5 @@ docker-build-prod:
 	docker build -f build/Dockerfile.prod -t prophet/wager-prod .
 server:
 	go run cmd/main.go
+docker-compose-up:
+	docker-compose --file=build/docker-compose.yml up

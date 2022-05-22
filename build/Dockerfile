@@ -1,0 +1,16 @@
+#Build image
+FROM golang:1.17beta1-alpine3.14 as builder
+RUN apk add build-base
+RUN apk add --no-cache git
+RUN mkdir /build
+COPY ../.. /build
+WORKDIR /build
+RUN go mod download
+WORKDIR /build/cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
+
+#Generate clean, final image for end users
+FROM alpine
+COPY --from=builder /build .
+#Executable
+ENTRYPOINT ["/cmd/main"]
