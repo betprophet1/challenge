@@ -28,8 +28,8 @@ func main() {
 		},
 	)
 	conf := pkg.Get()
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		conf.MysqlUser, conf.MysqlPassword, conf.MysqlHost, conf.MysqlDatabase)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		conf.MysqlUser, conf.MysqlPassword, conf.MysqlHost, conf.MysqlPort,conf.MysqlDatabase)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger:                                   dbLogger,
 	})
