@@ -4,6 +4,7 @@ import (
 	"betprophet1.com/wagers/internal/dtos"
 	"betprophet1.com/wagers/internal/services"
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -29,7 +30,7 @@ func NewWagerHandler(wagerService services.IWagerService, purchaseService servic
 func (w *WagerHandler) PlaceWager(res http.ResponseWriter, req *http.Request) {
 	wager := &dtos.WagerRequestDto{}
 	if err := json.NewDecoder(req.Body).Decode(wager); err != nil {
-		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: err.Error()})
+		e, _ := json.Marshal(&dtos.WagerErrorResponse{Error: errors.New("Body must not be null or empty").Error()})
 		res.Header().Add("Content-Type", "application/json")
 		res.WriteHeader(http.StatusInternalServerError)
 		res.Write(e)
