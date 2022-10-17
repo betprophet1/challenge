@@ -33,18 +33,7 @@ services:
     build:
       context: .
       dockerfile: docker/test.dockerfile
-    environment:
-      SERVICE_POSTGRES_DNS: "postgres://simple:simple@simple_postgres:5432/simplebet?sslmode=disable"
-      SERVICE_REDIS_DNS: "simple_redis:6379"
-      DEBUG: "false"
     command: test -v ./...
-    networks:
-      - simplebet
-    depends_on:
-      simple_postgres:
-        condition: service_healthy
-      simple_redis:
-        condition: service_healthy
 
   simple_migrate:
     container_name: simple_migrate

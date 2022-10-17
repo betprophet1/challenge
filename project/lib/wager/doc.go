@@ -4,8 +4,10 @@ import (
 	"net/http"
 
 	"project/common/failure"
+	"project/project/lib/wager/sql"
 )
 
+// Error codes...
 var (
 	selling_price_under_threshold   = "selling_price_under_threshold"
 	buying_price_over_selling_price = "buying_price_over_selling_price"
@@ -40,4 +42,13 @@ var (
 		wager_not_found,
 		ErrorCodeMap[wager_not_found],
 	)
+)
+
+// Sql...
+var (
+	AddWagerSql                = sql.AddWager
+	FetchWagerForUpdateSql     = sql.FetchWagerForUpdate
+	AddWagerTxnLogSql          = sql.AddWagerTxnLog
+	UpdateWagerSellingPriceSql = sql.UpdateWagerSellingPrice
+	FetchWagersSql             = sql.FetchWagers
 )

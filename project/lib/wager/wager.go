@@ -10,7 +10,6 @@ import (
 	"project/common/database/orm"
 	"project/common/failure"
 	"project/project/dbmodels"
-	"project/project/lib/wager/sql"
 
 	"github.com/shopspring/decimal"
 )
@@ -27,7 +26,7 @@ func PlaceOne(ctx context.Context, wager dbmodels.Wager) (_ dbmodels.Wager, err 
 	wager.PlacedAt = time.Now().Unix()
 
 	db := database.GetOrm()
-	wager, err = sql.AddWager(ctx, db, wager)
+	wager, err = AddWagerSql(ctx, db, wager)
 	if err != nil {
 		err = failure.InternalServerError(err)
 	}
@@ -43,7 +42,7 @@ func BuyOneOrPart(ctx context.Context, wagerID uint64, userID string, buyingPric
 	err = database.Transaction(func(txnWrapper *orm.TransactionWrapper) orm.TransactionCallback {
 		return func(innerDB orm.Orm) (err error) {
 			// lock on wager<id>
-			wager, err := sql.FetchWagerForUpdate(ctx, innerDB, wagerID)
+			wager, err := FetchWagerForUpdateSql(ctx, innerDB, wagerID)
 			if err != nil {
 				err = failure.InternalServerError(err)
 				return
@@ -71,16 +70,13 @@ func BuyOneOrPart(ctx context.Context, wagerID uint64, userID string, buyingPric
 			}
 			wagerTxnLog.Amount = buyingPrice.Neg()
 			wagerTxnLog.PostSellingPrice = wager.CurrentSellingPrice.Sub(buyingPrice)
-			wagerTxnLog, err = sql.AddWagerTxnLog(ctx, innerDB, wagerTxnLog)
+			wagerTxnLog, err = AddWagerTxnLogSql(ctx, innerDB, wagerTxnLog)
 			if err != nil {
 				err = failure.InternalServerError(err)
 				return
 			}
 
-			counter := &SoldCounter{
-				WagerID: wager.ID,
-				Mem:     cache.GetClient(),
-			}
+			counter := NewSoldCouter(wagerID, cache.GetClient())
 			if err = counter.Incr(ctx); err != nil {
 				err = failure.InternalServerError(err)
 				return
@@ -102,7 +98,7 @@ func BuyOneOrPart(ctx context.Context, wagerID uint64, userID string, buyingPric
 				BigInt().Uint64())
 			wager.PercentageSold = &percentageSold
 			wager.AmountSold = &soldCount
-			if err = sql.UpdateWagerSellingPrice(ctx, innerDB, wager); err != nil {
+			if err = UpdateWagerSellingPriceSql(ctx, innerDB, wager); err != nil {
 				err = failure.InternalServerError(err)
 			}
 			return
@@ -113,7 +109,7 @@ func BuyOneOrPart(ctx context.Context, wagerID uint64, userID string, buyingPric
 
 func List(ctx context.Context, limit, offset uint) (wagers []dbmodels.Wager, err error) {
 	db := orm.GetGormOrm()
-	wagers, err = sql.FetchWagers(ctx, db, limit, offset)
+	wagers, err = FetchWagersSql(ctx, db, limit, offset)
 	if err != nil {
 		err = failure.InternalServerError(err)
 	}

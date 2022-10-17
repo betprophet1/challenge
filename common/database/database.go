@@ -7,5 +7,7 @@ func GetOrm() orm.Orm {
 }
 
 func Transaction(callback orm.TransactionWrapperCallback) error {
-	return orm.Transaction(callback)
+	return OrmTransaction(callback)
 }
+
+var OrmTransaction = orm.Transaction
