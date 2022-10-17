@@ -1,0 +1,92 @@
+version: "3"
+services:
+  simplebet:
+    container_name: simplebet_http
+    build:
+      context: .
+      dockerfile: docker/app.dockerfile
+    environment:
+      SERVICE_GRACEFUL_TIMEOUT: 30s
+      SERVICE_POSTGRES_DNS: "postgres://simple:simple@simple_postgres:5432/simplebet?sslmode=disable"
+      SERVICE_REDIS_DNS: "simple_redis:6379"
+      DEBUG: "true"
+    command: simplebet http
+    ports:
+      - 8080:8080
+    volumes:
+      - ${PWD}/.env:/.env
+    networks:
+      - simplebet
+    depends_on:
+      simple_postgres:
+        condition: service_healthy
+      simple_redis:
+        condition: service_healthy
+    healthcheck:
+        test: ["CMD", "curl", "localhost:8080/health"]
+        interval: 10s
+        timeout: 1s
+        retries: 5
+
+  simplebet_test:
+    container_name: simplebet_http_test
+    build:
+      context: .
+      dockerfile: docker/test.dockerfile
+    environment:
+      SERVICE_POSTGRES_DNS: "postgres://simple:simple@simple_postgres:5432/simplebet?sslmode=disable"
+      SERVICE_REDIS_DNS: "simple_redis:6379"
+      DEBUG: "false"
+    command: test -v ./...
+    networks:
+      - simplebet
+    depends_on:
+      simple_postgres:
+        condition: service_healthy
+      simple_redis:
+        condition: service_healthy
+
+  simple_migrate:
+    container_name: simple_migrate
+    build:
+      context: .
+      dockerfile: docker/migrate.dockerfile
+    command: ["-path", "./", "-database",  "postgres://simple:simple@simple_postgres:5432/simplebet?sslmode=disable", "up"]
+    networks:
+      - simplebet
+    depends_on:
+      simple_postgres:
+        condition: service_healthy
+
+  simple_postgres:
+    image: postgres:15.0-alpine
+    container_name: simple_postgres
+    environment:
+      POSTGRES_USER: simple
+      POSTGRES_PASSWORD: simple
+      POSTGRES_DB: simplebet
+    ports:
+      - 5432:5432
+    networks:
+      - simplebet
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready", "-d", "simplebet"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+
+  simple_redis:
+    image: redis:6.2.6-alpine
+    container_name: simple_redis
+    ports:
+      - 6379:6379
+    networks:
+      - simplebet
+    healthcheck:
+        test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+
+networks:
+  simplebet:
