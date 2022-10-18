@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 	"time"
+
+	"github.com/go-redis/redis_rate/v9"
 )
 
 type (
@@ -18,5 +20,14 @@ type (
 		Delete(ctx context.Context, key string) error
 		Incr(ctx context.Context, key string) error
 		Decr(ctx context.Context, key string) error
+	}
+
+	RateLimiter interface {
+		AllowPerSecond(ctx context.Context, key string, rate int) (*redis_rate.Result, error)
+	}
+
+	Locker interface {
+		Lock(ctx context.Context, key string) (Locker, error)
+		Unlock(ctx context.Context) (bool, error)
 	}
 )

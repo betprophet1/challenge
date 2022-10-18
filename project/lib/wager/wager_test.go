@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"testing"
 
+	"project/common/cache"
 	"project/common/cache/client"
 	"project/common/database"
 	"project/common/database/orm"
 	"project/common/failure"
 	"project/project/dbmodels"
 
+	"github.com/go-redis/redis_rate/v9"
 	"github.com/shopspring/decimal"
 )
 
@@ -115,6 +117,27 @@ func (m mockSoldCouter) Decr(ctx context.Context) error {
 func (m mockSoldCouter) GetCount(ctx context.Context) (uint, error) {
 	return 1, nil
 }
+
+type mocklimiter struct {
+}
+
+func (m mocklimiter) AllowPerSecond(ctx context.Context, key string, rate int) (*redis_rate.Result, error) {
+	return &redis_rate.Result{
+		Allowed: 1,
+	}, nil
+}
+
+type mocklocker struct {
+}
+
+func (m mocklocker) Lock(ctx context.Context, key string) (client.Locker, error) {
+	return &mocklocker{}, nil
+}
+
+func (m mocklocker) Unlock(ctx context.Context) (bool, error) {
+	return true, nil
+}
+
 func TestBuyOneOrPart(t *testing.T) {
 	testCases := []testCase{
 		{
@@ -139,6 +162,12 @@ func TestBuyOneOrPart(t *testing.T) {
 				}
 				database.OrmTransaction = func(callback orm.TransactionWrapperCallback) error {
 					return nil
+				}
+				cache.GetRateLimiter = func() client.RateLimiter {
+					return &mocklimiter{}
+				}
+				cache.LockSimple = func(ctx context.Context, key string, params ...any) (client.Locker, error) {
+					return &mocklocker{}, nil
 				}
 			},
 			input: buy_one_or_part_input{

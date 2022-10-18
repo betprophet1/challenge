@@ -7,6 +7,10 @@ import (
 	"project/project/lib/wager/sql"
 )
 
+var (
+	MaxBuyRequestsPerSecond = 3
+)
+
 // Error codes...
 var (
 	selling_price_under_threshold   = "selling_price_under_threshold"

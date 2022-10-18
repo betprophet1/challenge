@@ -39,6 +39,28 @@ func PlaceOne(ctx context.Context, wager dbmodels.Wager) (_ dbmodels.Wager, err 
 		current_selling_price -> decreases from selling_price to 0
 */
 func BuyOneOrPart(ctx context.Context, wagerID uint64, userID string, buyingPrice decimal.Decimal) (wagerTxnLog dbmodels.WagerTxnLog, err error) {
+	// limit requests per user
+	limitkey := fmt.Sprintf("simplebet:buy:[user<%s>]", userID)
+	result, err := cache.GetRateLimiter().AllowPerSecond(ctx, limitkey, MaxBuyRequestsPerSecond)
+	if err != nil {
+		err = failure.InternalServerError(err)
+		return
+	}
+	if result.Allowed == 0 {
+		err = failure.TooManyRequestsError(fmt.Errorf("requests refused from `%s`", userID))
+		return
+	}
+
+	// lock multiple called requests per user
+	lockkey := fmt.Sprintf("simplebet:buy:[user<%s>]:lock", userID)
+	lock, err := cache.LockSimple(ctx, lockkey, userID)
+	if err != nil {
+		err = failure.InternalServerError(err)
+		return
+	}
+	defer func() { _, _ = lock.Unlock(ctx) }()
+
+	// execute buy process
 	err = database.Transaction(func(txnWrapper *orm.TransactionWrapper) orm.TransactionCallback {
 		return func(innerDB orm.Orm) (err error) {
 			// lock on wager<id>
