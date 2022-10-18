@@ -18,6 +18,6 @@ service running at *localhost:8080*
 - Cache sold counts
 
 ### Nice to have features
-- Rate limit middleware for each user's buying requests
-- Lock on multiple requests from an user (incase user sends multiple requests at same time under valid rate limit)
+- [x] Rate limit middleware for each user's buying requests
+- [x] Lock on multiple requests from an user (incase user sends multiple requests at same time under valid rate limit)
 - Integration tests
