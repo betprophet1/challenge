@@ -178,6 +178,80 @@ func TestBuyOneOrPart(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
+			name: "buying price equal to 0",
+			ctx:  context.Background(),
+			mockFun: func() {
+				FetchWagerForUpdateSql = func(ctx context.Context, db orm.Orm, wagerId uint64) (wager dbmodels.Wager, err error) {
+					return dbmodels.Wager{
+						ID:                  1,
+						CurrentSellingPrice: decimal.NewFromFloat32(100),
+						SellingPrice:        decimal.NewFromFloat32(100),
+					}, nil
+				}
+				AddWagerTxnLogSql = func(ctx context.Context, db orm.Orm, wagerTxnlogs dbmodels.WagerTxnLog) (_ dbmodels.WagerTxnLog, err error) {
+					return dbmodels.WagerTxnLog{}, nil
+				}
+				UpdateWagerSellingPriceSql = func(ctx context.Context, db orm.Orm, wager dbmodels.Wager) (err error) {
+					return nil
+				}
+				NewSoldCouter = func(wagerid uint64, memdb client.Client) SoldCouter {
+					return &mockSoldCouter{}
+				}
+				database.OrmTransaction = func(callback orm.TransactionWrapperCallback) error {
+					return nil
+				}
+				cache.GetRateLimiter = func() client.RateLimiter {
+					return &mocklimiter{}
+				}
+				cache.LockSimple = func(ctx context.Context, key string, params ...any) (client.Locker, error) {
+					return &mocklocker{}, nil
+				}
+			},
+			input: buy_one_or_part_input{
+				wagerid:     1,
+				userid:      "thanhdinh",
+				buyingprice: decimal.NewFromFloat32(0),
+			},
+			expectedErr: BuyingPriceNotAccepted(nil),
+		},
+		{
+			name: "buying price less than 0",
+			ctx:  context.Background(),
+			mockFun: func() {
+				FetchWagerForUpdateSql = func(ctx context.Context, db orm.Orm, wagerId uint64) (wager dbmodels.Wager, err error) {
+					return dbmodels.Wager{
+						ID:                  1,
+						CurrentSellingPrice: decimal.NewFromFloat32(100),
+						SellingPrice:        decimal.NewFromFloat32(100),
+					}, nil
+				}
+				AddWagerTxnLogSql = func(ctx context.Context, db orm.Orm, wagerTxnlogs dbmodels.WagerTxnLog) (_ dbmodels.WagerTxnLog, err error) {
+					return dbmodels.WagerTxnLog{}, nil
+				}
+				UpdateWagerSellingPriceSql = func(ctx context.Context, db orm.Orm, wager dbmodels.Wager) (err error) {
+					return nil
+				}
+				NewSoldCouter = func(wagerid uint64, memdb client.Client) SoldCouter {
+					return &mockSoldCouter{}
+				}
+				database.OrmTransaction = func(callback orm.TransactionWrapperCallback) error {
+					return nil
+				}
+				cache.GetRateLimiter = func() client.RateLimiter {
+					return &mocklimiter{}
+				}
+				cache.LockSimple = func(ctx context.Context, key string, params ...any) (client.Locker, error) {
+					return &mocklocker{}, nil
+				}
+			},
+			input: buy_one_or_part_input{
+				wagerid:     1,
+				userid:      "thanhdinh",
+				buyingprice: decimal.NewFromInt32(-100),
+			},
+			expectedErr: BuyingPriceNotAccepted(nil),
+		},
+		{
 			name: "wager not found",
 			ctx:  context.Background(),
 			mockFun: func() {

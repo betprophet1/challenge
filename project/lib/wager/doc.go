@@ -17,6 +17,7 @@ var (
 	buying_price_over_selling_price = "buying_price_over_selling_price"
 	wager_out_of_item               = "wager_out_of_item"
 	wager_not_found                 = "wager_not_found"
+	buying_price_not_accepted       = "buying_price_not_accepted"
 )
 
 var ErrorCodeMap = map[string]int{
@@ -24,6 +25,7 @@ var ErrorCodeMap = map[string]int{
 	buying_price_over_selling_price: http.StatusBadRequest,
 	wager_out_of_item:               http.StatusBadRequest,
 	wager_not_found:                 http.StatusNotFound,
+	buying_price_not_accepted:       http.StatusBadRequest,
 }
 
 var (
@@ -45,6 +47,11 @@ var (
 	WagerNotFound failure.ErrorWraper = failure.NewFailure(
 		wager_not_found,
 		ErrorCodeMap[wager_not_found],
+	)
+
+	BuyingPriceNotAccepted failure.ErrorWraper = failure.NewFailure(
+		buying_price_not_accepted,
+		ErrorCodeMap[buying_price_not_accepted],
 	)
 )
 

@@ -92,6 +92,11 @@ func BuyOneOrPart(ctx context.Context, wagerID uint64, userID string, buyingPric
 			}
 			wagerTxnLog.Amount = buyingPrice.Neg()
 			wagerTxnLog.PostSellingPrice = wager.CurrentSellingPrice.Sub(buyingPrice)
+			if wagerTxnLog.PostSellingPrice.
+				GreaterThanOrEqual(wager.CurrentSellingPrice) {
+				err = BuyingPriceNotAccepted(fmt.Errorf("buying_price=%v", buyingPrice))
+				return
+			}
 			wagerTxnLog, err = AddWagerTxnLogSql(ctx, innerDB, wagerTxnLog)
 			if err != nil {
 				err = failure.InternalServerError(err)

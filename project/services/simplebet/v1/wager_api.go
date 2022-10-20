@@ -1,10 +1,10 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
+	"project/common/failure"
 	"project/project/dbmodels"
 	"project/project/lib/wager"
 
@@ -13,8 +13,8 @@ import (
 
 func PlaceOneWager(ctx *gin.Context) {
 	var reqModel PlaceOneWagerRequest
-	if err := ctx.Bind(&reqModel); err != nil {
-		ctx.Error(fmt.Errorf("binding failed | err=%s", err.Error()))
+	if err := ctx.ShouldBind(&reqModel); err != nil {
+		ctx.Error(failure.BadRequestError(err))
 		return
 	}
 	mwager := dbmodels.Wager{
@@ -25,7 +25,7 @@ func PlaceOneWager(ctx *gin.Context) {
 	}
 	mwager, err := wager.PlaceOne(ctx, mwager)
 	if err != nil {
-		ctx.Error(err)
+		ctx.Error(failure.BadRequestError(err))
 		return
 	}
 	ctx.JSON(http.StatusOK, PlaceOneWagerResponse{
@@ -43,12 +43,12 @@ func PlaceOneWager(ctx *gin.Context) {
 
 func BuyFullOrPartOneWager(ctx *gin.Context) {
 	var reqModel BuyFullOrPartOneWagerRequest
-	if err := ctx.BindUri(&reqModel.WagerID); err != nil {
-		ctx.Error(fmt.Errorf("binding uri failed | err=%s", err.Error()))
+	if err := ctx.ShouldBindUri(&reqModel.WagerID); err != nil {
+		ctx.Error(failure.BadRequestError(err))
 		return
 	}
-	if err := ctx.Bind(&reqModel); err != nil {
-		ctx.Error(fmt.Errorf("binding failed | err=%s", err.Error()))
+	if err := ctx.ShouldBind(&reqModel); err != nil {
+		ctx.Error(failure.BadRequestError(err))
 		return
 	}
 	mwagerTxnlog, err := wager.BuyOneOrPart(ctx, reqModel.WagerID.Value, reqModel.UserID, reqModel.BuyingPrice)
@@ -66,8 +66,8 @@ func BuyFullOrPartOneWager(ctx *gin.Context) {
 
 func ListWagers(ctx *gin.Context) {
 	var reqModel Paging
-	if err := ctx.BindQuery(&reqModel); err != nil {
-		ctx.Error(fmt.Errorf("binding uri failed | err=%s", err.Error()))
+	if err := ctx.ShouldBindQuery(&reqModel); err != nil {
+		ctx.Error(failure.BadRequestError(err))
 		return
 	}
 	wagers, err := wager.List(ctx, reqModel.Limit, reqModel.Offset)
